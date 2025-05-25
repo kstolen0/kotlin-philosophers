@@ -7,13 +7,14 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.Date
 
-var dumplings = 500
+var dumplings = 100
 
 class Philosopher(val name: String, val leftChopstick: Mutex, val rightChopstick: Mutex) {
     suspend fun eat() {
         while (dumplings > 0) {
             leftChopstick.withLock {
                 println("$name picked up left chopstick")
+                delay(1)
                 rightChopstick.withLock {
                     println("$name picked up right chopstick")
                     dumplings--
@@ -29,18 +30,18 @@ class Philosopher(val name: String, val leftChopstick: Mutex, val rightChopstick
     }
 }
 
-val ch1 = Mutex(false)
-val ch2 = Mutex(false)
-val ch3 = Mutex(false)
-
-
 fun main() {
+
+    val ch1 = Mutex(false)
+    val ch2 = Mutex(false)
+    val ch3 = Mutex(false)
+
+    val p1 = Philosopher("Aristotle", ch1, ch2)
+    val p2 = Philosopher("Rene", ch2, ch3)
+    val p3 = Philosopher("Jean", ch3, ch1)
+
     runBlocking {
         withTiming {
-            val p1 = Philosopher("Aristotle", ch1, ch2)
-            val p2 = Philosopher("Rene", ch2, ch3)
-            val p3 = Philosopher("Jean", ch3, ch1)
-
             val eating1 = launch { p1.eat() }
             val eating2 = launch { p2.eat() }
             val eating3 = launch { p3.eat() }
