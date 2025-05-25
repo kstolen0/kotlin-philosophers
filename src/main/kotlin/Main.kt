@@ -4,12 +4,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.util.Date
 
 typealias Chopstick = Mutex
 
-var dumplings = 500
+var dumplings = 100
 
 fun main() {
     val ch1 = Mutex(false)
@@ -18,15 +17,18 @@ fun main() {
     val ch4 = Mutex(false)
 
     val ph1 = PolitePhilosopher("Aristotle", ch1, ch2)
-    val ph2 = PolitePhilosopher("Jean", ch2, ch1)
+    val ph2 = PolitePhilosopher("Jean", ch2, ch3)
+    val ph3 = PolitePhilosopher("Daniel", ch3, ch1)
 
     runBlocking {
         withTiming {
             val p1 = launch { ph1.eat() }
             val p2 = launch { ph2.eat() }
+            val p3 = launch { ph3.eat() }
 
             p1.join()
             p2.join()
+            p3.join()
         }
     }
 }
@@ -50,6 +52,8 @@ class PolitePhilosopher(val name: String, val left: Chopstick, val right: Chopst
                 println("$name released left ch")
             }
             println("$dumplings dumplings left")
+            println("$name thinking")
+           delay(100)
         }
     }
 }
