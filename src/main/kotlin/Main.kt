@@ -1,5 +1,6 @@
 package org.example
 
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -22,15 +23,20 @@ suspend fun main() {
 
     withTiming {
         coroutineScope {
-            launch { ph1.eat() }
-            launch { ph2.eat() }
-            launch { ph3.eat() }
+            val ph1Job = async { ph1.eat() }
+            val ph2Job = async { ph2.eat() }
+            val ph3Job = async { ph3.eat() }
+
+            println("${ph1.name} ate ${ph1Job.await()} dumplings")
+            println("${ph2.name} ate ${ph2Job.await()} dumplings")
+            println("${ph3.name} ate ${ph3Job.await()} dumplings")
         }
     }
 }
 
 class PolitePhilosopher(val name: String, val left: Chopstick, val right: Chopstick) {
-    suspend fun eat() {
+    suspend fun eat(): Int {
+        var dumplingsAte = 0
         while (dumplings > 0) {
             if (left.tryLock()) {
                 println("$name picked up left ch")
@@ -39,6 +45,7 @@ class PolitePhilosopher(val name: String, val left: Chopstick, val right: Chopst
                     if (dumplings > 0) {
                         println("$name ate dumpling")
                         dumplings--
+                        dumplingsAte++
                     }
                     right.unlock()
                     println("$name released right ch")
@@ -50,6 +57,7 @@ class PolitePhilosopher(val name: String, val left: Chopstick, val right: Chopst
             println("$name thinking")
             delay(100)
         }
+        return dumplingsAte
     }
 }
 
