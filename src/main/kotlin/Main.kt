@@ -1,5 +1,6 @@
 package org.example
 
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -11,7 +12,7 @@ typealias Chopstick = Mutex
 
 var dumplings = 100
 
-fun main() {
+suspend fun main() {
     val ch1 = Mutex(false)
     val ch2 = Mutex(false)
     val ch3 = Mutex(false)
@@ -21,15 +22,11 @@ fun main() {
     val ph2 = Philosopher("Albert", ch2, ch3, waiter)
     val ph3 = Philosopher("Soren", ch3, ch1, waiter)
 
-    runBlocking {
-        withTiming {
-            val p1 = launch { ph1.eat() }
-            val p2 = launch { ph2.eat() }
-            val p3 = launch { ph3.eat() }
-
-            p1.join()
-            p2.join()
-            p3.join()
+    withTiming {
+    coroutineScope {
+            launch { ph1.eat() }
+            launch { ph2.eat() }
+            launch { ph3.eat() }
         }
     }
 }
@@ -45,7 +42,6 @@ class Waiter() {
     suspend fun requestChopsticks(left: Chopstick, right: Chopstick, action: suspend () -> Unit) {
         attention.withLock {
             left.withLock {
-                delay(1)
                 right.withLock {
                     action()
                 }
