@@ -1,5 +1,6 @@
 package org.example
 
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -10,25 +11,20 @@ typealias Chopstick = Mutex
 
 var dumplings = 100
 
-fun main() {
+suspend fun main() {
     val ch1 = Mutex(false)
     val ch2 = Mutex(false)
     val ch3 = Mutex(false)
-    val ch4 = Mutex(false)
 
     val ph1 = PolitePhilosopher("Aristotle", ch1, ch2)
     val ph2 = PolitePhilosopher("Jean", ch2, ch3)
     val ph3 = PolitePhilosopher("Daniel", ch3, ch1)
 
-    runBlocking {
-        withTiming {
-            val p1 = launch { ph1.eat() }
-            val p2 = launch { ph2.eat() }
-            val p3 = launch { ph3.eat() }
-
-            p1.join()
-            p2.join()
-            p3.join()
+    withTiming {
+        coroutineScope {
+            launch { ph1.eat() }
+            launch { ph2.eat() }
+            launch { ph3.eat() }
         }
     }
 }
@@ -37,12 +33,11 @@ class PolitePhilosopher(val name: String, val left: Chopstick, val right: Chopst
     suspend fun eat() {
         while (dumplings > 0) {
             if (left.tryLock()) {
-                delay(1)
                 println("$name picked up left ch")
                 if (right.tryLock()) {
-                    delay(1)
                     println("$name picked up right ch")
                     if (dumplings > 0) {
+                        println("$name ate dumpling")
                         dumplings--
                     }
                     right.unlock()
@@ -53,7 +48,7 @@ class PolitePhilosopher(val name: String, val left: Chopstick, val right: Chopst
             }
             println("$dumplings dumplings left")
             println("$name thinking")
-           delay(100)
+            delay(100)
         }
     }
 }
