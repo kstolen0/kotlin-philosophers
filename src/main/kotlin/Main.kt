@@ -18,8 +18,8 @@ fun main() {
 
     val waiter = Waiter()
     val ph1 = Philosopher("Socrates", ch1, ch2, waiter)
-    val ph2 = Philosopher("Albert", ch1, ch2, waiter)
-    val ph3 = Philosopher("Soren", ch2, ch3, waiter)
+    val ph2 = Philosopher("Albert", ch2, ch3, waiter)
+    val ph3 = Philosopher("Soren", ch3, ch1, waiter)
 
     runBlocking {
         withTiming {
